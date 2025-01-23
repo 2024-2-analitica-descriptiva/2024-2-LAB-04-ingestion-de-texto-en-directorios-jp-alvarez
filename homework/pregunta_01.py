@@ -71,3 +71,39 @@ def pregunta_01():
 
 
     """
+    import zipfile
+    import os
+    import pandas as pd
+    import glob
+
+    def extraer_archivos(zip_path, extract_to):
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_to)
+
+    def crear_directorio(directorio):
+        os.makedirs(directorio, exist_ok=True)
+
+    def procesar_archivos(ruta_directorio, sentimiento):
+        frases = []
+        for ruta_archivo in glob.glob(f"{ruta_directorio}/{sentimiento}/*"):
+            with open(ruta_archivo, 'r', encoding='utf-8') as archivo:
+                frase = archivo.read().strip()
+                frases.append([frase, sentimiento])
+        return frases
+
+    def crear_dataset(ruta_directorio, nombre_archivo_salida):
+        datos = [['phrase', 'target']]
+        for sentimiento in ['negative', 'neutral', 'positive']:
+            datos.extend(procesar_archivos(ruta_directorio, sentimiento))
+        
+        datos_df = pd.DataFrame(datos[1:], columns=datos[0])
+        datos_df.to_csv(f'files/output/{nombre_archivo_salida}', index=False)
+        return datos_df
+
+    extraer_archivos('files/input.zip', 'files')
+    crear_directorio('files/output')
+
+    crear_dataset("files/input/test", "test_dataset.csv")
+    crear_dataset("files/input/train", "train_dataset.csv")
+
+pregunta_01()
